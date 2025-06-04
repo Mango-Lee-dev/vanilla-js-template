@@ -123,7 +123,26 @@ class PostManager {
     );
   }
 
-  // 통계 정보
+  sortPosts(sortBy) {
+    switch (sortBy) {
+      case "latest":
+        this.#posts.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        break;
+      case "mostLiked":
+        this.#posts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        break;
+      case "mostViewed":
+        this.#posts.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      case "titleAsc":
+        this.#posts.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+    this.#notifySubscribers();
+  }
+
   getStats() {
     return {
       totalPosts: this.#posts.length,
@@ -144,6 +163,7 @@ class PostManager {
         content:
           "이곳은 자유롭게 의견을 나누는 공간입니다. 정중한 언어 사용을 부탁드립니다.",
         author: "관리자",
+        createdAt: "2025-06-04T00:00:00.000Z",
       });
 
       this.addPost({
@@ -151,6 +171,7 @@ class PostManager {
         content:
           "ES2022에서 도입된 private fields(#)를 사용하면 진정한 캡슐화를 구현할 수 있습니다. 이전의 convention 기반 접근법보다 훨씬 안전합니다.",
         author: "개발자",
+        createdAt: "2025-06-03T00:00:00.000Z",
       });
 
       this.addPost({
@@ -158,6 +179,7 @@ class PostManager {
         content:
           "새 글 작성, 좋아요, 검색, 정렬, 필터링 기능을 지원합니다. 마크다운 문법도 곧 지원될 예정입니다.",
         author: "운영자",
+        createdAt: "2025-06-02T00:00:00.000Z",
       });
 
       this.addPost({
@@ -165,9 +187,8 @@ class PostManager {
         content:
           "React, Vue, Angular 같은 프레임워크도 좋지만, Vanilla JavaScript의 기초를 탄탄히 하는 것이 중요합니다.",
         author: "시니어개발자",
+        createdAt: "2025-06-01T00:00:00.000Z",
       });
-
-      // 조회수와 좋아요 임의 설정
       this.#posts[1].views = 25;
       this.#posts[1].likes = 7;
       this.#posts[2].views = 18;

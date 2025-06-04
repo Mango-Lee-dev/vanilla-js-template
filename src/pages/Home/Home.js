@@ -1,5 +1,4 @@
 import AppStore from "../../store/AppStore.js";
-
 import {
   createElement,
   formatDate,
@@ -7,16 +6,26 @@ import {
 } from "../../utils/helpers.js";
 
 function Home() {
-  // Singleton 패턴으로 PostManager 인스턴스 가져오기
   const store = new AppStore();
   const postManager = store.getPostManager();
 
-  // 현재 데이터 가져오기
   const posts = postManager.getAllPosts();
   const stats = postManager.getStats();
   const globalState = store.getGlobalState();
 
-  // 게시글 목록 렌더링
+  // PostManager의 변경사항을 구독
+  const unsubscribe = postManager.subscribe((updatedPosts) => {
+    const postContainer = document.getElementById("post-container");
+    if (postContainer) {
+      postContainer.innerHTML = renderPosts(updatedPosts);
+    }
+  });
+
+  // 컴포넌트가 제거될 때 구독 해제
+  window.addEventListener("unload", () => {
+    unsubscribe();
+  });
+
   function renderPosts(posts) {
     if (posts.length === 0) {
       return `
@@ -73,7 +82,6 @@ function Home() {
   // 메인 템플릿 리터럴 반환
   const element = createElement(`
     <div class="board-page">
-      <!-- Header Section -->
       <header class="board-header">
         <div class="header-content">
           <h1>📝 개발자 게시판</h1>
@@ -220,6 +228,7 @@ function setupEventListeners(element, postManager, store) {
       store.updateGlobalState({ sortBy: target.value });
       console.log("정렬 변경:", target.value);
       // TODO: 실제 정렬 로직 구현
+      postManager.sortPosts(target.value);
     } else if (target.id === "filter-select") {
       store.updateGlobalState({ filterBy: target.value });
       console.log("필터 변경:", target.value);

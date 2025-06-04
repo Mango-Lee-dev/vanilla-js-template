@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("App 인스턴스 생성 실패");
     }
   } catch (error) {
-    console.error("앱 초기화 실패:", error);
     const appContainer = document.getElementById("app");
     if (appContainer) {
       appContainer.innerHTML = `
