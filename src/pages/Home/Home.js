@@ -3,27 +3,15 @@ import {
   createElement,
   formatDate,
   truncateText,
-} from "../../utils/helpers.js";
-
-// 상수 분리
-const CONSTANTS = {
-  TRUNCATE_LENGTH: 120,
-  ANIMATION_DURATION: 150,
-  MESSAGES: {
-    NO_POSTS: "게시글이 없습니다",
-    NO_POSTS_DESC: "첫 번째 게시글을 작성해보세요!",
-    NO_RESULTS: "검색 결과가 없습니다",
-    SEARCH_PLACEHOLDER: "검색어를 입력해주세요.",
-  },
-};
-
+} from "../../lib/utils/helpers.js";
+import { CONSTANTS } from "../../lib/constants/home.js";
 // 렌더링 함수들
-const renderEmptyState = (title, description) => `
-  <div class="no-posts">
-    <h3>${title}</h3>
-    <p>${description}</p>
-  </div>
-`;
+// const renderEmptyState = (title, description) => `
+//   <div class="no-posts">
+//     <h3>${title}</h3>
+//     <p>${description}</p>
+//   </div>
+// `;
 
 const renderNoSearchResults = (query) => `
   <div class="no-results">
@@ -74,7 +62,7 @@ const renderPostFooter = (post) => `
 `;
 
 const renderPost = (post) => `
-  <article class="flex w-full flex-col gap-2 items-start justify-center" data-post-id="${
+  <article class="flex w-full flex-col gap-2 items-start justify-center border-2 border-gray-300 bg-gray-100 rounded-md p-4" data-post-id="${
     post.id
   }">
     ${renderPostHeader(post)}

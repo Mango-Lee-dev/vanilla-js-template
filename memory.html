@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Static 메서드 메모리 구조</title>
+    <style>
+      body {
+        font-family: "Consolas", "Monaco", monospace;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .memory-section {
+        background: #2d2d30;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #007acc;
+      }
+
+      .code-block {
+        background: #1e1e1e;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #3c3c3c;
+        margin: 10px 0;
+        overflow-x: auto;
+      }
+
+      .output {
+        background: #0f3460;
+        color: #9cdcfe;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+
+      .highlight {
+        background: #264f78;
+        color: #4fc3f7;
+        padding: 2px 4px;
+        border-radius: 2px;
+      }
+
+      .structure {
+        font-family: monospace;
+        white-space: pre;
+        background: #252526;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #3c3c3c;
+      }
+
+      button {
+        background: #0e639c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 5px;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background: #1177bb;
+      }
+
+      .arrow {
+        color: #4fc3f7;
+        font-weight: bold;
+      }
+
+      h2 {
+        color: #4fc3f7;
+        border-bottom: 2px solid #3c3c3c;
+        padding-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>JavaScript Static 메서드 메모리 구조 분석</h1>
+
+      <div class="memory-section">
+        <h2>1. 클래스 정의와 메모리 등록</h2>
+        <div class="code-block">
+          class Example { constructor(name) { this.name = name; } // 인스턴스
+          메서드 instanceMethod() { return `Hello, ${this.name}`; } // Static
+          메서드 static staticMethod() { return 'This is static'; } static
+          utilityFunction(x, y) { return x + y; } }
+        </div>
+        <button onclick="analyzeMemoryStructure()">메모리 구조 분석하기</button>
+        <div id="structure-output" class="output" style="display: none"></div>
+      </div>
+
+      <div class="memory-section">
+        <h2>2. Static 메서드 등록 위치 확인</h2>
+        <div class="code-block">
+          // Static 메서드는 클래스 객체에 직접 등록됨 console.log('Static
+          method location:'); console.log(Example.staticMethod); // [Function:
+          staticMethod] console.log(Example.hasOwnProperty('staticMethod')); //
+          true // 인스턴스 메서드는 prototype에 등록됨 console.log('Instance
+          method location:'); console.log(Example.instanceMethod); // undefined
+          console.log(Example.prototype.instanceMethod); // [Function:
+          instanceMethod]
+        </div>
+        <button onclick="checkMethodLocations()">메서드 위치 확인하기</button>
+        <div id="location-output" class="output" style="display: none"></div>
+      </div>
+
+      <div class="memory-section">
+        <h2>3. 메모리 구조 시각화</h2>
+        <div class="structure">
+          <span class="highlight">힙 메모리 구조:</span>
+
+          ┌─────────────────────────────────────┐ │
+          <span class="highlight">Example (Function Object)</span> │ │ ├── name:
+          'Example' │ │ ├── length: 1 │ │ ├── prototype ──────────────────┐ │ │
+          ├── <span class="arrow">staticMethod: [Function] ←──</span> ││ │
+          <span class="highlight">Static 메서드</span> │ └──
+          <span class="arrow">utilityFunction: [Function] ←</span> ││ │
+          <span class="highlight">여기에 저장!</span>
+          └─────────────────────────────────┴┴───┘ ││
+          ┌─────────────────────────────────▼▼───┐ │
+          <span class="highlight">Example.prototype</span> │ │ ├── constructor:
+          Example │ │ └──
+          <span class="arrow">instanceMethod: [Function] ←──</span> │
+          <span class="highlight">인스턴스 메서드</span>
+          └─────────────────────────────────────┘
+          <span class="highlight">여기에 저장!</span>
+        </div>
+      </div>
+
+      <div class="memory-section">
+        <h2>4. 상속에서의 Static 메서드 등록</h2>
+        <div class="code-block">
+          class Parent { static parentStatic() { return 'parent'; } } class
+          Child extends Parent { static childStatic() { return 'child'; } }
+        </div>
+        <button onclick="analyzeInheritance()">상속 구조 분석하기</button>
+        <div id="inheritance-output" class="output" style="display: none"></div>
+      </div>
+
+      <div class="memory-section">
+        <h2>5. 실제 메모리 주소와 참조</h2>
+        <button onclick="checkMemoryReferences()">메모리 참조 확인하기</button>
+        <div id="reference-output" class="output" style="display: none"></div>
+      </div>
+    </div>
+
+    <script>
+      // 예제 클래스들 정의
+      class Example {
+        constructor(name) {
+          this.name = name;
+        }
+
+        instanceMethod() {
+          return `Hello, ${this.name}`;
+        }
+
+        static staticMethod() {
+          return "This is static";
+        }
+
+        static utilityFunction(x, y) {
+          return x + y;
+        }
+      }
+
+      class Parent {
+        static parentStatic() {
+          return "parent";
+        }
+      }
+
+      class Child extends Parent {
+        static childStatic() {
+          return "child";
+        }
+      }
+
+      function analyzeMemoryStructure() {
+        const output = document.getElementById("structure-output");
+        let result = "<strong>메모리 구조 분석 결과:</strong><br><br>";
+
+        // 클래스 객체의 프로퍼티 확인
+        result +=
+          '<span class="highlight">Example 클래스 객체의 프로퍼티:</span><br>';
+        const classProps = Object.getOwnPropertyNames(Example);
+        classProps.forEach((prop) => {
+          if (prop === "staticMethod" || prop === "utilityFunction") {
+            result += `├── <span class="arrow">${prop}: [Function] ← Static 메서드!</span><br>`;
+          } else {
+            result += `├── ${prop}: ${typeof Example[prop]}<br>`;
+          }
+        });
+
+        result +=
+          '<br><span class="highlight">Example.prototype의 프로퍼티:</span><br>';
+        const prototypeProps = Object.getOwnPropertyNames(Example.prototype);
+        prototypeProps.forEach((prop) => {
+          if (prop === "instanceMethod") {
+            result += `├── <span class="arrow">${prop}: [Function] ← 인스턴스 메서드!</span><br>`;
+          } else {
+            result += `├── ${prop}: ${typeof Example.prototype[prop]}<br>`;
+          }
+        });
+
+        output.innerHTML = result;
+        output.style.display = "block";
+      }
+
+      function checkMethodLocations() {
+        const output = document.getElementById("location-output");
+        let result = "<strong>메서드 위치 확인 결과:</strong><br><br>";
+
+        result += '<span class="highlight">Static 메서드 위치:</span><br>';
+        result += `Example.staticMethod: ${
+          Example.staticMethod ? "[Function]" : "undefined"
+        }<br>`;
+        result += `hasOwnProperty('staticMethod'): ${Example.hasOwnProperty(
+          "staticMethod"
+        )}<br><br>`;
+
+        result += '<span class="highlight">인스턴스 메서드 위치:</span><br>';
+        result += `Example.instanceMethod: ${
+          Example.instanceMethod ? "[Function]" : "undefined"
+        }<br>`;
+        result += `Example.prototype.instanceMethod: ${
+          Example.prototype.instanceMethod ? "[Function]" : "undefined"
+        }<br>`;
+        result += `prototype.hasOwnProperty('instanceMethod'): ${Example.prototype.hasOwnProperty(
+          "instanceMethod"
+        )}<br><br>`;
+
+        result += '<span class="highlight">결론:</span><br>';
+        result += "• Static 메서드 → 클래스 객체에 직접 저장<br>";
+        result += "• 인스턴스 메서드 → prototype 객체에 저장<br>";
+
+        output.innerHTML = result;
+        output.style.display = "block";
+      }
+
+      function analyzeInheritance() {
+        const output = document.getElementById("inheritance-output");
+        let result = "<strong>상속에서의 Static 메서드 등록:</strong><br><br>";
+
+        result += '<span class="highlight">Parent 클래스:</span><br>';
+        result +=
+          "Parent.parentStatic: " +
+          (Parent.parentStatic ? "[Function]" : "undefined") +
+          "<br>";
+        result +=
+          "hasOwnProperty('parentStatic'): " +
+          Parent.hasOwnProperty("parentStatic") +
+          "<br><br>";
+
+        result += '<span class="highlight">Child 클래스:</span><br>';
+        result +=
+          "Child.childStatic: " +
+          (Child.childStatic ? "[Function]" : "undefined") +
+          "<br>";
+        result +=
+          "Child.parentStatic: " +
+          (Child.parentStatic ? "[Function (inherited)]" : "undefined") +
+          "<br>";
+        result +=
+          "hasOwnProperty('childStatic'): " +
+          Child.hasOwnProperty("childStatic") +
+          "<br>";
+        result +=
+          "hasOwnProperty('parentStatic'): " +
+          Child.hasOwnProperty("parentStatic") +
+          "<br><br>";
+
+        result += '<span class="highlight">상속 체인:</span><br>';
+        result +=
+          "Child.__proto__ === Parent: " +
+          (Child.__proto__ === Parent) +
+          "<br>";
+
+        output.innerHTML = result;
+        output.style.display = "block";
+      }
+
+      function checkMemoryReferences() {
+        const output = document.getElementById("reference-output");
+        let result = "<strong>메모리 참조 분석:</strong><br><br>";
+
+        // 함수 객체의 참조 확인
+        result += '<span class="highlight">함수 객체 참조:</span><br>';
+        result +=
+          "Example.staticMethod === Example.staticMethod: " +
+          (Example.staticMethod === Example.staticMethod) +
+          "<br>";
+        result +=
+          "Example.prototype.instanceMethod === Example.prototype.instanceMethod: " +
+          (Example.prototype.instanceMethod ===
+            Example.prototype.instanceMethod) +
+          "<br><br>";
+
+        // 인스턴스별 메서드 공유 확인
+        const instance1 = new Example("Instance1");
+        const instance2 = new Example("Instance2");
+
+        result += '<span class="highlight">인스턴스 간 메서드 공유:</span><br>';
+        result +=
+          "instance1.instanceMethod === instance2.instanceMethod: " +
+          (instance1.instanceMethod === instance2.instanceMethod) +
+          "<br>";
+        result += "→ 인스턴스 메서드는 prototype에서 공유됨<br><br>";
+
+        result += '<span class="highlight">Static 메서드 접근:</span><br>';
+        result +=
+          "typeof instance1.staticMethod: " +
+          typeof instance1.staticMethod +
+          "<br>";
+        result +=
+          "typeof Example.staticMethod: " +
+          typeof Example.staticMethod +
+          "<br>";
+        result += "→ Static 메서드는 인스턴스에서 접근 불가<br>";
+
+        output.innerHTML = result;
+        output.style.display = "block";
+      }
+    </script>
+  </body>
+</html>
